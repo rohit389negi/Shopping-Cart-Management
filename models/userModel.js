@@ -35,10 +35,10 @@ const userSchema = new mongoose.Schema({
     }, 
   password: {
 
-    type: Number, 
+    type: String, 
     required: true, 
-    minlength: 8,
-    maxlength: 15,
+    // minlength: 8,
+    // maxlength: 15,
     trim: true
 
     },// encrypted password

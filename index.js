@@ -12,7 +12,7 @@ const multer = require('multer');
 
  app.use('/',route)
 
- mongoose.connect("mongodb+srv://users-open-to-all:hiPassword123@cluster0.uh35t.mongodb.net/SCMgroup13DB?retryWrites=true&w=majority", { useNewUrlParser: true })
+ mongoose.connect("mongodb+srv://users-open-to-all:hiPassword123@cluster0.uh35t.mongodb.net/SCM_Group13DB?retryWrites=true&w=majority", { useNewUrlParser: true })
  .then(() => console.log('mongodb running and connected'))
  .catch(err => console.log(err))
 
