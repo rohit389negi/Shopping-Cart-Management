@@ -3,20 +3,17 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
 
   fname: {
-
     type: String, 
     required: true
-
     },
-  lname: {
 
+  lname: {
     type: String, 
     required: [true,'Enter a name'],
     trim: true
-
     },
-  email: {
 
+  email: {
     type: String, 
     required: true, 
     unique:true
@@ -31,38 +28,30 @@ const userSchema = new mongoose.Schema({
     type: String, 
     required: true, 
     unique:true 
-
     }, 
-  password: {
 
+  password: {
     type: String, 
     required: true, 
     // minlength: 8,
     // maxlength: 15,
     trim: true
-
     },// encrypted password
 
 
   address: {
     shipping: {
-
       street: {
         type: String, 
         required: true
-
         },
       city: {
-
         type: String, 
         required: true
-
         },
       pincode: {
-
         type: String, 
         required: true
-
         }
     },
     billing: {
@@ -74,7 +63,6 @@ const userSchema = new mongoose.Schema({
         type: String, 
         required: true
       },
-
       pincode: {
         type: Number, 
         required: true}
