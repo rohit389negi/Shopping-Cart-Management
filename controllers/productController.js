@@ -7,7 +7,6 @@ const awsFunction = require('../controllers/awsControllers')
 let addProduct = async function (req, res) {
     try {
         let reqBody = req.body
-     //   let reqBody = JSON.parse(reqData)
         reqBody.currencyId = "INR"
         reqBody.currencyFormat = "₹"
         
@@ -83,7 +82,7 @@ let addProduct = async function (req, res) {
             res.status(200).send({ status: false, message: `product ${title} created successfully`, data: createProduct })
             return
         } else {
-            res.status(400).send({ status: false, message: "somthing unexpected happen" })
+            res.status(400).send({ status: false, message: "Please Provide Profile Images" })
             return
         }
     } catch (error) {
@@ -94,25 +93,25 @@ let addProduct = async function (req, res) {
 // get product by query localhost:3000/products
 const getProduct = async function (req, res) {
     try {
-
-        if (req.query.size || req.query.name || req.query.priceGreaterThan || req.query.priceLessThan) {
+const {size, name, priceGreaterThan, priceLessThan} = req.query
+        if (size || name || priceGreaterThan || priceLessThan) {
             
             
-            let availableSizes = req.query.size
-            let title = req.query.name
-            let priceGreaterThan = req.query.priceGreaterThan
-            let priceLessThan = req.query.priceLessThan
+            // let availableSizes = req.query.size
+            // let title = req.query.name
+            // let priceGreaterThan = req.query.priceGreaterThan
+            // let priceLessThan = req.query.priceLessThan
 
             if (priceLessThan < priceGreaterThan) {
                 return res.status(400).send({status:false, message:"Wrong Price query used"})
             }
 
             obj = {}
-            if (availableSizes) {
-                obj.availableSizes = availableSizes
+            if (size) {
+                obj.availableSizes = size
             }
-            if (title) {
-                obj.title = { $regex: title }
+            if (name) {
+                obj.title = { $regex: name}
             
                // obj.title = { $regex: '.*' + title.toLowerCase() + '.*' }
             }
@@ -191,7 +190,7 @@ const updateProduct = async function (req, res) {
         }
 
 
-        const { title, description, price,isFreeShipping, currencyId, currencyFormat, style, availableSizes, installments } = requestBody
+        const { title } = requestBody
 
         if (productDetails.isDeleted === false) {
 
