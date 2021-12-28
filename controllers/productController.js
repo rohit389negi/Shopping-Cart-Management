@@ -5,8 +5,9 @@ const awsFunction = require('../controllers/awsControllers')
 
 
 let addProduct = async function (req, res) {
-    try {
+    // try {
         let reqBody = req.body
+        console.log(reqBody)
         reqBody.currencyId = "INR"
         reqBody.currencyFormat = "₹"
         
@@ -18,9 +19,8 @@ let addProduct = async function (req, res) {
         }
 
         let { title, description, price, style, availableSizes } = reqBody
+        const availableSizes = availableSizes.split(',')
 
-        // let availSiz = JSON.parse(availableSizes)
-        // console.log(typeof availableSizes)
         if (!validator.isValid(title)) {
             res.status(400).send({ status: false, message: "enter valid title" })
             return
@@ -36,27 +36,24 @@ let addProduct = async function (req, res) {
             return
         }
 
-        // if (!validator.isValid(currencyId)) {
-        //     res.status(400).send({ status: false, message: "currencyId is required" })
+        // if (!validator.isAvailableSizes(availableSizes.split(','))) {
+        //     res.status(400).send({ status: false, message: "select size from available sizes " })
         //     return
         // }
+        let newArray = []
+        if (availableSizes) {
+            if (availableSizes.length === 0) {
+                return res.status(400).send({ status: false, msg: 'please provide the product size' })
+            }
+            for (let i = 0; i < availableSizes.length; i++) {
+                newArray.push(availableSizes[i].toUpperCase())
+                if (!(["S", "XS", "M", "X", "L", "XXL", "XL"].includes(availableSizes[i]))) {
+                    return res.status(400).send({ status: false, message: `select size from available sizes ` })
+                }
 
-        // if (!validator.isValid(currencyFormat)) {
-        //     res.status(400).send({ status: false, message: "currencyFormat is required" })
-        //     return
-        // }
-
-        // a
-
-        if (!validator.isAvailableSizes(availableSizes)) {
-            res.status(400).send({ status: false, message: "select size from available sizes " })
-            return
+            }
         }
-        
-        // if (validate.isValidSize(availableSizes)) {
-        //     res.status(400).send({ status: false, message: "size is required2" })
-        //     return
-        // }
+        reqBody.availableSizes = newArray
 
         let findTitle = await productModel.findOne({ title })
         if (findTitle) {
@@ -68,16 +65,6 @@ let addProduct = async function (req, res) {
             let uploadedFileURL = await awsFunction.uploadFile(files[0])
             reqBody.profileImage = uploadedFileURL
 
-            // let saveProductData = {
-            //     title,
-            //     description,
-            //     price,
-            //     availableSizes,
-            //     productImage: uploadedFileURL,
-            //     style
-            // }
-            // console.log(typeof availSiz)
-
             let createProduct = await productModel.create(reqBody)
             res.status(200).send({ status: false, message: `product ${title} created successfully`, data: createProduct })
             return
@@ -85,9 +72,9 @@ let addProduct = async function (req, res) {
             res.status(400).send({ status: false, message: "Please Provide Profile Images" })
             return
         }
-    } catch (error) {
-        res.status(500).send({ seatus: false, message: error.message })
-    }
+    // } catch (error) {
+    //     res.status(500).send({ seatus: false, message: error.message })
+    // }
 }
 
 // get product by query localhost:3000/products
