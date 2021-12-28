@@ -7,6 +7,7 @@ const awsFunction = require('../controllers/awsControllers')
 let addProduct = async function (req, res) {
     try {
         let reqBody = req.body
+        console.log(reqBody)
         reqBody.currencyId = "INR"
         reqBody.currencyFormat = "₹"
         
@@ -79,6 +80,7 @@ let addProduct = async function (req, res) {
             // console.log(typeof availSiz)
 
             let createProduct = await productModel.create(reqBody)
+            
             res.status(200).send({ status: false, message: `product ${title} created successfully`, data: createProduct })
             return
         } else {
