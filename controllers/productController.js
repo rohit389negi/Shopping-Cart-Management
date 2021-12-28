@@ -66,6 +66,7 @@ let addProduct = async function (req, res) {
             reqBody.profileImage = uploadedFileURL
 
             let createProduct = await productModel.create(reqBody)
+            
             res.status(200).send({ status: false, message: `product ${title} created successfully`, data: createProduct })
             return
         } else {

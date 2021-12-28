@@ -20,6 +20,8 @@ router.get('/products/:productId', productController.getProductById)
 router.put('/products/:productId', productController.updateProduct)
 router.delete('/products/:productId', productController.deleteproductByID)
 
+router.post('/users/:userId/cart', cartController.AddToCart)
+router.put('/users/:userId/cart', cartController.updateCart)
 
 
 
