@@ -68,10 +68,7 @@ catch (error) {
 //     res.status(401).send({ status: false, message: 'unauthorization access' })
 // }
 
-
-
 const updateCart = async function(req, res) {
-
     try{
         const userId = req.params.userId
         const requestBody = req.body
@@ -93,19 +90,14 @@ const updateCart = async function(req, res) {
         if(!productFound){
             return res.status(400).send({status:false,message:'product Id not found'})
           }
-
         const cartItems = cartFound.items
         
-        
         for (let i=0; i<cartItems.length; i++) {
-        
             if(cartItems[i].quantity <= removeProduct) {  
-            let quantity = cartItems[i].quantity
-            
+            let quantity = cartItems[i].quantity    
             quantity = quantity - removeProduct 
             }
         }
-
         // for(let i=0;i<find.items.length;i++){
         //     if(cartInfo.items[0].productId == find.items[i].productId){
         //     let prod = await productModel.findOne({_id: cartInfo.items[i].productId})
@@ -114,20 +106,12 @@ const updateCart = async function(req, res) {
         //     }
         //     }
 
-
-
         if (cartId) {
             const data = await cartModel.findOneAndUpdate({_id: productId})
             return res.status(200).send({status:true, message: "Successfully updated data"})
-
         }
-
-
-
     }
-
     catch {
-
     }
 } 
 
