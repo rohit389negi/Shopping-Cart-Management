@@ -19,7 +19,7 @@ let addProduct = async function (req, res) {
         }
 
         let { title, description, price, style, availableSizes } = reqBody
-        const availableSizes = availableSizes.split(',')
+      //  const availableSizes = availableSizes.split(',')
 
         if (!validator.isValid(title)) {
             res.status(400).send({ status: false, message: "enter valid title" })
@@ -36,24 +36,24 @@ let addProduct = async function (req, res) {
             return
         }
 
-        // if (!validator.isAvailableSizes(availableSizes.split(','))) {
-        //     res.status(400).send({ status: false, message: "select size from available sizes " })
-        //     return
-        // }
-        let newArray = []
-        if (availableSizes) {
-            if (availableSizes.length === 0) {
-                return res.status(400).send({ status: false, msg: 'please provide the product size' })
-            }
-            for (let i = 0; i < availableSizes.length; i++) {
-                newArray.push(availableSizes[i].toUpperCase())
-                if (!(["S", "XS", "M", "X", "L", "XXL", "XL"].includes(availableSizes[i]))) {
-                    return res.status(400).send({ status: false, message: `select size from available sizes ` })
-                }
-
-            }
+        if (!validator.isAvailableSizes(availableSizes)) {
+            res.status(400).send({ status: false, message: "select size from available sizes " })
+            return
         }
-        reqBody.availableSizes = newArray
+        // let newArray = []
+        // if (availableSizes) {
+        //     if (availableSizes.length === 0) {
+        //         return res.status(400).send({ status: false, msg: 'please provide the product size' })
+        //     }
+        //     for (let i = 0; i < availableSizes.length; i++) {
+        //         newArray.push(availableSizes[i].toUpperCase())
+        //         if (!(["S", "XS", "M", "X", "L", "XXL", "XL"].includes(availableSizes[i]))) {
+        //             return res.status(400).send({ status: false, message: `select size from available sizes ` })
+        //         }
+
+        //     }
+        // }
+       // reqBody.availableSizes = newArray
 
         let findTitle = await productModel.findOne({ title })
         if (findTitle) {
@@ -67,7 +67,7 @@ let addProduct = async function (req, res) {
 
             let createProduct = await productModel.create(reqBody)
             
-            res.status(200).send({ status: false, message: `product ${title} created successfully`, data: createProduct })
+            res.status(200).send({ status: true, message: `product ${title} created successfully`, data: createProduct })
             return
         } else {
             res.status(400).send({ status: false, message: "Please Provide Profile Images" })
