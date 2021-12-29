@@ -8,6 +8,8 @@ const productModel = require('../models/productModel')
 const awsFunction = require('../controllers/awsControllers')
 const validator = require('../validation/validator')
 
+
+
 const registerUser = async (req, res) => {
 
     try {
@@ -128,10 +130,10 @@ const getUserData = async function (req, res) {
         const userId = req.params.userId
         
 
-        // if (!validator.isValidObjectId(userId)) {
-        //     res.status(400).send({ status: false, msg: `Invalid request. No request passed in the query` })
-        //     return
-        // }
+        if (!validator.isValidObjectId(userId)) {
+            res.status(400).send({ status: false, msg: `Invalid userId` })
+            return
+        }
 
         if(req.userId != userId) {
             res.status(400).send({ status: false, msg: `Unauthorised Access` })
@@ -139,9 +141,7 @@ const getUserData = async function (req, res) {
         }
 
 
-        let userDetail = await userModel.findOne({ _id: userId })
-        
-
+        let userDetail = await userModel.findOne({ _id: userId , isDeleted:false})
         if(!userDetail){
             res.status(400).send({status:false, message: `No user exist with this ${userId}`})
         }
@@ -160,7 +160,7 @@ const updateUserData = async function (req, res) {
         const files = req.files
         const userId = req.params.userId
         const { fname, lname, email, phone, password, address } = requestBody
-        const UserFound = await userModel.findOne({ _id: userId})
+        
 
         if(!validator.isValidObjectId(userId)){
             res.status(400).send({ status: false, message: `Invalid UserId` })            
@@ -169,6 +169,10 @@ const updateUserData = async function (req, res) {
         if(req.userId != userId) {
             res.status(400).send({ status: false, msg: `Unauthorised Access` })
             return
+        }
+        const userFound = await userModel.findOne({ _id: userId, isDeleted:false})
+        if(!userFound){
+            res.status(400).send({ status: false, message: `No user exist` })            
         }
 
         let obj = {}
@@ -195,50 +199,50 @@ const updateUserData = async function (req, res) {
             const imageUrl = await awsFunction.uploadFile(files[0])
             obj.profileImage =imageUrl
           }
-          if(requestBody.address){
-            requestBody.address=JSON.parse(requestBody.address)
-        if(requestBody.address.shipping)
-        {
-            if(requestBody.address.shipping.street)
-            {
-                UserFound.address.shipping.street=requestBody.address.shipping.street
-                await UserFound.save()
+          if(address){
+
+            if(address.shipping){
+  
+              if(address.shipping.street){
+                  
+                  obj["address.shipping.street"] = address.shipping.street
+              }
+          
+                if(address.shipping.city){
+                
+                  obj["address.shipping.city"]=address.shipping.city
+              }
+          
+              if(address.shipping.pincode){
+                
+                  obj["address.shipping.pincode"] = address.shipping.pincode
+              }
+  
             }
-            if(requestBody.address.shipping.city)
-            {
-                UserFound.address.shipping.city=requestBody.address.shipping.city
-                await UserFound.save()
-            }
-            if(requestBody.address.shipping.pincode)
-            {
-                UserFound.address.shipping.pincode=requestBody.address.shipping.pincode
-                await UserFound.save()
+  
+            if(address.billing){
+  
+              if(address.billing.street){
+  
+                  obj["address.billing.street"] = address.billing.street
+              }
+              
+              if(address.billing.city){
+                
+                  obj["address.billing.city"] = address.billing.city
+              }
+          
+              if(address.billing.pincode){
+
+                  obj["address.billing.pincode"] = address.billing.pincode
+              }
+  
             }
         }
-    
-        if(requestBody.address.billing)
-        {
-            if(requestBody.address.billing.street)
-            {
-                UserFound.address.billing.street=requestBody.address.billing.street
-                await UserFound.save()
-            }
-            if(requestBody.address.billing.city)
-            {
-                UserFound.address.billing.city=requestBody.address.billing.city
-                await UserFound.save()
-            }
-            if(requestBody.address.billing.pincode)
-            {
-                UserFound.address.billing.pincode=requestBody.address.billing.pincode
-                await UserFound.save()
-            }
-        }
-     }
             }
   
         const updatedData = await userModel.findOneAndUpdate({_id:userId}, obj,{new:true})
-  console.log(updatedData)
+
         res.status(200).send({ status: true, message: `Successlly updated user details`, data: updatedData })
     }
   
@@ -247,110 +251,6 @@ const updateUserData = async function (req, res) {
     }
   }
 
-//   const updateUserData = async (req, res) => {
-
-//     userId = req.params.userId;
-//     const requestBody = req.body;
-//     const profileImage = req.files
-//     TokenDetail=req.user
-
-//     if (!validator.isValidRequestBody(requestBody)) {
-//         return res.status(400).send({ status: false, message: 'No paramateres passed. Book unmodified' })
-//     }
-//     const UserFound = await userModel.findOne({ _id: userId})
-    
-
-//     if (!UserFound) {
-//         return res.status(404).send({ status: false, message: `User not found with given UserId` })
-//     }
-//     if (!TokenDetail === userId) {
-//         res.status(400).send({ status: false, message: "userId in url param and in token is not same" })
-//     }
-
-
-
-//     var {fname,lname,email,phone,password}=requestBody
-
-//     if (Object.prototype.hasOwnProperty.call(requestBody, 'email')) {
-//         if (!(/^\w+([\.-]?\w+)@\w+([\.-]?\w+)(\.\w{2,3})+$/.test(requestBody.email))) {
-//             res.status(400).send({ status: false, message: `Email should be a valid email address` })
-//             return
-//         };
-      
-
-//         const isEmailAlreadyUsed = await userModel.findOne({ email: requestBody.email });
-//         if (isEmailAlreadyUsed) {
-//             res.status(400).send({ status: false, message: `${requestBody.email} email address is already registered` })
-//             return
-//         };
-//     }
-//    // console.log(Object.prototype.hasOwnProperty.call(requestBody, 'password'))
-
-//     if (Object.prototype.hasOwnProperty.call(requestBody, 'password')) {
-//         requestBody.password = requestBody.password.trim();
-//         if (!(requestBody.password.length > 7 && requestBody.password.length < 16)) {
-//             res.status(400).send({ status: false, message: "password should  between 8 and 15 characters" })
-//             return
-//         };
-
-//         var salt = await bcrypt.genSalt(10);
-//         password = await bcrypt.hash(requestBody.password, salt)
-//         console.log(password)
-//         requestBody.password = password;
-//     }
-//     if (profileImage && profileImage.length > 0) {
-//         var uploadedFileURL = await upload.uploadFile(profileImage[0]);
-//         console.log(uploadedFileURL)
-//         requestBody.profileImage = uploadedFileURL
-//     };
-
-//     //
-//     if(requestBody.address){
-//         requestBody.address=JSON.parse(requestBody.address)
-//     if(requestBody.address.shipping)
-//     {
-//         if(requestBody.address.shipping.street)
-//         {
-//             UserFound.address.shipping.street=requestBody.address.shipping.street
-//             await UserFound.save()
-//         }
-//         if(requestBody.address.shipping.city)
-//         {
-//             UserFound.address.shipping.city=requestBody.address.shipping.city
-//             await UserFound.save()
-//         }
-//         if(requestBody.address.shipping.pincode)
-//         {
-//             UserFound.address.shipping.pincode=requestBody.address.shipping.pincode
-//             await UserFound.save()
-//         }
-//     }
-
-//     if(requestBody.address.billing)
-//     {
-//         if(requestBody.address.billing.street)
-//         {
-//             UserFound.address.billing.street=requestBody.address.billing.street
-//             await UserFound.save()
-//         }
-//         if(requestBody.address.billing.city)
-//         {
-//             UserFound.address.billing.city=requestBody.address.billing.city
-//             await UserFound.save()
-//         }
-//         if(requestBody.address.billing.pincode)
-//         {
-//             UserFound.address.billing.pincode=requestBody.address.billing.pincode
-//             await UserFound.save()
-//         }
-//     }
-//  }
-//     requestBody.UpdatedAt = new Date()
-//     const UpdateData={fname,profileImage:uploadedFileURL,lname,email,phone,password}
-//     const upatedUser = await userModel.findOneAndUpdate({ _id: userId }, UpdateData, { new: true })
-//     res.status(200).send({ status: true, message: 'User updated successfully', data: upatedUser });
-
-// }
 
 
 module.exports = { registerUser,Login, getUserData, updateUserData}
