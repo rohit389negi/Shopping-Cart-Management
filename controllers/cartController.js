@@ -6,90 +6,83 @@ const { findOneAndUpdate } = require('../models/productModel');
 
 const createCart = async function (req, res) {
     try {
-        let paramsUser = req.params.userId;
+        let userId = req.params.userId;
+        const productId = req.body.items[0].productId
 
-        if (!paramsUser) {
-            return res
-                .status(400)
-                .send({
-                    status: true,
-                    message: "Please Provide a Valid UserId in Params",
-                });
-
-            if(cartInfo.items[0].quantity == 0){
-                return res.status(400).send({status: true, message: "Please add Atleast One Quantity to the cart"})
+          if (!validator.isValidObjectId(userId)) {
+            return res.status(400).send({status: true, message: "Please Provide a Valid UserId in Params",});
             }
+  
+         if (!validator.isValidObjectId(productId)) {
+            return res.status(400).send({status: true, message: "Please Provide a Valid UserId in Params"});
         }
-        // if(!(req.userId == paramsUser)){
-        //     return res.status(400).send({status: true, message:"You are not authorised to update Cart"})
-        // }
+        if (req.body.items[0].quantity <1) {
+          return res.status(400).send({status: true, message: "Please Add One Quantity at a Time"});
+       }
 
-        let find = await cartModel.findOne({ userId: paramsUser });
-        if (!find) {
+        if(!(req.userId == userId)){
+            return res.status(400).send({status: true, message:"You are not authorised to update Cart"})
+        }
+
+        let cartDetail = await cartModel.findOne({ userId: userId});
+
+        if (!cartDetail) {
+            return  res.status(400).send({status: true, message: "User Not exist",});
+        }
+
+        else if (!cartDetail) {
             let cartInfo = req.body;
             let totalPrice = 0;
-            let totalItems = cartInfo.items.length;
+            let items = cartInfo.items
+            let totalItems = items.length;
             if (totalItems > 1) {
-                return res
-                    .status(400)
-                    .send({ status: true, message: "Please Add One Product at a Time" });
+                return res.status(400).send({ status: true, message: "Please Add One Product at a Time" });
             }
-            let dummy = await productModel.findOne({
+            let productFound = await productModel.findOne({
                 _id: (cartInfo.items[0].productId),
                 isDeleted: false,
             });
-            totalPrice = dummy.price * cartInfo.items[0].quantity;
+            totalPrice = productFound.price * cartInfo.items[0].quantity
 
-            cartInfo.userId = paramsUser;
+            cartInfo.userId = userId;
             cartInfo.totalItems = totalItems;
             cartInfo.totalPrice = totalPrice;
 
             const cartCreate = await cartModel.create(cartInfo);
-            return res
-                .status(201)
-                .send({
-                    status: true,
-                    message: "Cart Successfully Created",
-                    data: cartCreate,
-                });
+            return res.status(201).send({ status: true,message: "Cart Successfully Created",data: cartCreate });
         } else {
             let cartInfo = req.body;
             let totalItems = cartInfo.items.length;
             if (totalItems > 1) {
-                return res
-                    .status(400)
-                    .send({ status: true, message: "Please Add One Product at a Time" });
-            }
+                return res.status(400).send({ status: true, message: "Please Add One Product at a Time" })}
             let prod = {};
             prod.value = 0;
-            let len = find.items.length;
+            let len = cartDetail.items.length;
             let prodId = cartInfo.items[0].productId;
             for (let i = 0; i < len; i++) {
-                if (prodId == find.items[i].productId) {
+                if (prodId == cartDetail.items[i].productId) {
                    
-                    let prod2 = await productModel.findOne({ _id: prodId });
-                    find.totalPrice =
-                        Number(find.totalPrice) +
+                    let prod2 = await productModel.findOne({ _id: prodId , isDeleted:false});
+                    cartDetail.totalPrice =
+                        Number(cartDetail.totalPrice) +
                         Number(prod2.price) * Number(cartInfo.items[0].quantity);
-                        find.items[i].quantity = Number(find.items[i].quantity) + Number(cartInfo.items[0].quantity)
+                        cartDetail.items[i].quantity = Number(cartDetail.items[i].quantity) + Number(cartInfo.items[0].quantity)
                        
                     prod.value = 1;
-                    find.save();
-                    
+                    cartDetail.save();
                     break;
                      }
                  }   
                    if (prod.value === 0) {
-                       find.items.push(cartInfo.items[0]);
-                        find.totalItems++;
+                       cartDetail.items.push(cartInfo.items[0]);
+                       cartDetail.totalItems++;
                         let prod2 = await productModel.findOne({ _id: cartInfo.items[0].productId });
-                        find.totalPrice =
-                            Number(find.totalPrice) +
+                        cartDetail.totalPrice =
+                            Number(cartDetail.totalPrice) +
                             Number(prod2.price) * Number(cartInfo.items[0].quantity);
-                            find.save();
+                            cartDetail.save();
                     }
-                    
-                    return res.status(200).send({status: true, msg: "Successful", data: find})
+                     return res.status(200).send({status: true, msg: "Successful", data: cartDetail})
                 
             
         }
@@ -102,15 +95,23 @@ const createCart = async function (req, res) {
 const updateCart = async (req, res) => {
     try {
         let parUserId = req.params.userId;
-        if (!parUserId) {
-            return res.status(400).send({ status: true, message: "Please " });
-        }
-        // if(!(req.userId == parUserId)){
-        //     return res.status(400).send({status: true, message:"You are not authorised to update Cart"})
-        // }
-
         let { cartId, productId, removeProduct } = req.body;
-        let find = await cartModel.findOne({ _id: cartId });
+
+        if (!validator.isValidObjectId(parUserId)) {
+            return res.status(400).send({status: true, message: "Please Provide a Valid UserId in Params"});
+        }
+
+        if (!validator.isValidObjectId(cartId)) {
+            return res.status(400).send({status: true, message: "Please Provide a Valid Cart Id"});
+        }
+        if (!validator.isValidObjectId(productId)) {
+            return res.status(400).send({status: true, message: "Please Provide a Valid productId"});
+        }
+
+        if(!(req.userId == parUserId)){
+            return res.status(400).send({status: true, message:"You are not authorised to update Cart"})
+        }
+        let find = await cartModel.findOne({ _id: cartId});
         let len = find.items.length;
         if (!find) {
             return res
@@ -121,7 +122,7 @@ const updateCart = async (req, res) => {
         for (let i = 0; i < len; i++) {
             if (productId == find.items[i].productId) {
                 if (removeProduct == 1) {
-                    let prod = await productModel.findOne({ _id: productId });
+                    let prod = await productModel.findOne({ _id: productId, isDeleted:false });
                     find.totalPrice = Number(find.totalPrice) - Number(prod.price);
                     find.items[i].quantity -= 1;
 
@@ -132,7 +133,7 @@ const updateCart = async (req, res) => {
                     find.save();
                     break;
                 } else {
-                    let prod2 = await productModel.findOne({ _id: productId });
+                    let prod2 = await productModel.findOne({ _id: productId, isDeleted:false });
                     find.totalPrice =
                         Number(find.totalPrice) -
                         Number(find.items[i].quantity) * Number(prod2.price);
