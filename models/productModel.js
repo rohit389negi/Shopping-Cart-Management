@@ -5,27 +5,27 @@ const productSchema = new mongoose.Schema({
 
     title: { 
          type: String, 
-         required: true,
+         required: "Title is Required",
          unique: true 
         },
 
     description: { 
         type: String, 
-        required: true 
+        required: "Description is Required"
     },
     price: { 
         type: Number, 
-    required: true, 
+    required: "price is Required", 
     },
 
     currencyId: { 
         type: String, 
-        required: true 
+        required: "CurrencyId is Required" 
      },
 
     currencyFormat: { 
         type: String, 
-        required: true
+        required: "CurrencyFormat is Required"
     },
 
     isFreeShipping: { 
@@ -33,20 +33,19 @@ const productSchema = new mongoose.Schema({
          default: false
      },
     productImage: { 
-        type: String, 
-        // required: true 
-    },  // s3 link
+        type: String 
+    },
 
     style: { type: String},
 
     availableSizes: {
         type: String,
-        enum:["S", "XS", "M", "X", "L", "XXL", "XL"] 
+        enum:["S", "XS", "M", "X", "L", "XXL", "XL"]
         },
 
     installments: { type: Number },
 
-    deletedAt: {type: Date},
+    deletedAt: {type: Date, default:null},
 
     isDeleted: { 
         type: Boolean, 
@@ -54,6 +53,6 @@ const productSchema = new mongoose.Schema({
     },
    
       
-})
+}, {timestamps:true})
 
 module.exports = mongoose.model('myProduct',productSchema)

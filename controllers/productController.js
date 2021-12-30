@@ -5,11 +5,11 @@ const awsFunction = require('../controllers/awsControllers')
 
 
 let addProduct = async function (req, res) {
-    // try {
+    try {
         let reqBody = req.body
-        console.log(reqBody)
         reqBody.currencyId = "INR"
         reqBody.currencyFormat = "₹"
+        
         
         let files = req.files
 
@@ -18,8 +18,7 @@ let addProduct = async function (req, res) {
             return
         }
 
-        let { title, description, price, style, availableSizes } = reqBody
-      //  const availableSizes = availableSizes.split(',')
+        let { title, description, price, availableSizes } = reqBody
 
         if (!validator.isValid(title)) {
             res.status(400).send({ status: false, message: "enter valid title" })
@@ -36,24 +35,11 @@ let addProduct = async function (req, res) {
             return
         }
 
+
         if (!validator.isAvailableSizes(availableSizes)) {
             res.status(400).send({ status: false, message: "select size from available sizes " })
             return
         }
-        // let newArray = []
-        // if (availableSizes) {
-        //     if (availableSizes.length === 0) {
-        //         return res.status(400).send({ status: false, msg: 'please provide the product size' })
-        //     }
-        //     for (let i = 0; i < availableSizes.length; i++) {
-        //         newArray.push(availableSizes[i].toUpperCase())
-        //         if (!(["S", "XS", "M", "X", "L", "XXL", "XL"].includes(availableSizes[i]))) {
-        //             return res.status(400).send({ status: false, message: `select size from available sizes ` })
-        //         }
-
-        //     }
-        // }
-       // reqBody.availableSizes = newArray
 
         let findTitle = await productModel.findOne({ title })
         if (findTitle) {
@@ -63,19 +49,19 @@ let addProduct = async function (req, res) {
 
         if (files && files.length > 0) {
             let uploadedFileURL = await awsFunction.uploadFile(files[0])
-            reqBody.profileImage = uploadedFileURL
+            reqBody.productImage = uploadedFileURL
 
             let createProduct = await productModel.create(reqBody)
             
-            res.status(200).send({ status: true, message: `product ${title} created successfully`, data: createProduct })
+            res.status(201).send({ status: true, message: `product ${title} created successfully`, data: createProduct })
             return
         } else {
             res.status(400).send({ status: false, message: "Please Provide Profile Images" })
             return
         }
-    // } catch (error) {
-    //     res.status(500).send({ seatus: false, message: error.message })
-    // }
+    } catch (error) {
+        res.status(500).send({ seatus: false, message: error.message })
+    }
 }
 
 // get product by query localhost:3000/products
@@ -83,16 +69,6 @@ const getProduct = async function (req, res) {
     try {
 const {size, name, priceGreaterThan, priceLessThan} = req.query
         if (size || name || priceGreaterThan || priceLessThan) {
-            
-            
-            // let availableSizes = req.query.size
-            // let title = req.query.name
-            // let priceGreaterThan = req.query.priceGreaterThan
-            // let priceLessThan = req.query.priceLessThan
-
-            if (priceLessThan < priceGreaterThan) {
-                return res.status(400).send({status:false, message:"Wrong Price query used"})
-            }
 
             obj = {}
             if (size) {
@@ -111,10 +87,8 @@ const {size, name, priceGreaterThan, priceLessThan} = req.query
             }
             obj.isDeleted = false
             obj.deletedAt = null
-
-          //  console.log(obj)
             const getProductsList = await productModel.find(obj).sort({ price: 1 })
-            // console.log(getProductsList)
+
             if (!getProductsList || getProductsList.length == 0) {
                 res.status(400).send({ status: false, message: `product is not available right now.` })
             } else {
@@ -136,9 +110,7 @@ const getProductById = async function (req, res) {
         let id = req.params.productId
 
         if (!validator.isValidObjectId(id)) {
-            res
-                .status(404)
-                .send({ status: false, message: `${id} is not valid user id ` });
+            res.status(400).send({ status: false, message: `${id} is not valid Product id ` });
             return;
         }
 
@@ -147,11 +119,6 @@ const getProductById = async function (req, res) {
             res.status(404).send({ status: false, message: `product is not available with this ${id} id` })
             return
         }
-
-       // let data = await productModel.find({ _id: id, isDeleted: false, deletedAt: null })
-      //  if (!data) {
-        //     res.status(400).send({ status: false, message: "Product is not present with this ID. Please provide valid ID!!" })
-        // }
         res.status(200).send({ status: true, message: "Success", data: findPro })
     } catch (err) {
         res.status(500).send({ status: false, message: err.message })
@@ -166,38 +133,32 @@ const updateProduct = async function (req, res) {
         const requestBody = req.body;
         const productImage = req.files
 
-        if (!validator.isValidRequestBody(requestBody)) {
-            return res.status(400).send({ status: false, message: 'No paramateres passed. product unmodified' })
+        // if (!validator.isValidRequestBody(requestBody)) {
+        //     return res.status(400).send({ status: false, message: 'No paramateres passed. product unmodified' })
+        // }
+        if (!validator.isValidObjectId(productId)) {
+            res.status(400).send({ status: false, message: `${productId} is not valid Product id ` });
+            return;
         }
 
-        let productDetails = await productModel.findOne({ _id: req.params.productId })
+        let productDetails = await productModel.findOne({ _id: req.params.productId , isDeleted:false})
 
 
         if (!productDetails) {
-            return res.status(404).send({ status: false, message: `productDetails not found with given UserId` })
+            return res.status(404).send({ status: false, message: `productDetails not found with given ProductId or May be Deleted` })
         }
-
-
         const { title } = requestBody
 
-        if (productDetails.isDeleted === false) {
+         const istitleAlreadyUsed = await productModel.findOne({ title });
 
-            if(!validator.isValid(title)){
-                res.status(400).send({status: false, message: "please enter valid title"})
+         if (istitleAlreadyUsed) {
+                res.status(400).send({ status: false, message: `${title} these title is already Used` })
                 return
-            }
-
-            const istitleAlreadyUsed = await productModel.findOne({ title });
-
-            if (istitleAlreadyUsed) {
-                res.status(400).send({ status: false, message: `${title} these title is already registered` })
-                return
-            }
         }
+        
 
         if (productImage && productImage.length > 0) {
             var uploadedFileURL = await awsFunction.uploadFile(productImage[0]);
-            console.log(uploadedFileURL)
             requestBody.productImage = uploadedFileURL
         };
 

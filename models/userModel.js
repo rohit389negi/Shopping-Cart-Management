@@ -4,71 +4,72 @@ const userSchema = new mongoose.Schema({
 
   fname: {
     type: String, 
-    required: true
+    required: "First name is Required",
+    trim: true
     },
 
   lname: {
     type: String, 
-    required: [true,'Enter a name'],
+    required: "Last name is Required",
     trim: true
     },
 
   email: {
     type: String, 
-    required: true, 
-    unique:true
+    required: "Email is Required", 
+    unique:true,
+    trim:true,
+    lowercase:true
   },
 
   profileImage: {
-      type: String, 
-//    required: true
-    }, // s3 link
+      type: String
+    }, 
 
   phone: {
     type: String, 
-    required: true, 
-    unique:true 
+    required: "Phone is Required", 
+    unique:true,
+    trim:true
     }, 
 
   password: {
     type: String, 
-    required: true, 
-    // minlength: 8,
-    // maxlength: 15,
-    trim: true
-    },// encrypted password
+    required: "Password is Required"
+    },
 
 
   address: {
     shipping: {
       street: {
         type: String, 
-        required: true
+        required: "Street is Required"
         },
       city: {
         type: String, 
-        required: true
+        required: "City is Required"
         },
       pincode: {
-        type: String, 
-        required: true
+        type: Number,
+        required: "Pincode is Required"
         }
     },
     billing: {
         street: {
         type: String, 
-        required: true
+        required: "Street is Required"
       },
     city: {
         type: String, 
-        required: true
+        required: "City is Required"
       },
       pincode: {
         type: Number, 
-        required: true}
+        required: "Pincode is Required"
+      }
     }
   },
  
-});
+},{timestamps:true});
 
 module.exports = mongoose.model('myUser',userSchema)

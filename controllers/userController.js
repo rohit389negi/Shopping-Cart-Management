@@ -6,7 +6,8 @@ const orderModel = require('../models/orderModel')
 const cartModel = require('../models/cartModel')
 const productModel = require('../models/productModel')
 const awsFunction = require('../controllers/awsControllers')
-const validator = require('../validation/validator')
+const validator = require('../validation/validator');
+const { findOne } = require('../models/userModel');
 
 
 
@@ -17,9 +18,9 @@ const registerUser = async (req, res) => {
         let files = req.files;
         const { fname, lname, email, phone, password, address } = data
 
-        // if (!(validator.isValidRequestBody(data))) {
-        //     return res.status(400).send({ status: false, message: "Invalid request parameters.. Please Provide User Details" })
-        // }
+        if (!validator.isValidRequestBody(data)) {
+            return res.status(400).send({ status: false, message: "Invalid request parameters.. Please Provide User Details" })
+        }
 
         if (!validator.isValid(fname)) {
             return res.status(400).send({ status: false, message: "Please Provide First Name" })
@@ -49,7 +50,12 @@ const registerUser = async (req, res) => {
         if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email.trim()))) {
             return res.status(400).send({ status: false, message: `Enter a valid email address` })
         }
-
+        if(!validator.isValidPassword(password)){
+            return res.status(400).send({
+                status: false,
+                message: "Password length should be between 8 & 15 ",
+            });
+        }
         if (!/^[0-9]\d{9}$/gi.test(phone.trim())) {
             return res.status(400).send({
                 status: false,
@@ -57,11 +63,10 @@ const registerUser = async (req, res) => {
             });
         }
 
-        if(!validator.isValidPassword(password)){
-            return res.status(400).send({
-                status: false,
-                message: "Password should be a valid number",
-            });
+
+        const isAlreadyUsed = await userModel.findOne({email,phone})
+        if(isAlreadyUsed) {
+            return res.status(400).send({ status: false, message: `Email or phone is Already used` })
         }
 
         if (files && files.length > 0) {
@@ -75,7 +80,7 @@ const registerUser = async (req, res) => {
              data.password = await bcrypt.hash(data.password, salt);
 
 
-          //   const userData = { fname, lname, email, profileImage, phone, password, address }
+
             const savedData = await userModel.create(data);
             return res.status(201).send({ status: true, message: "Successfully Created", data: savedData });
 
@@ -95,6 +100,16 @@ const Login = async (req, res) => {
         const mEmail = req.body.email;
         const mPassword = req.body.password;
 
+        if (!validator.isValidRequestBody(req.body)) {
+            return res.status(400).send({ status: false, message: "Invalid request parameters.. Please Provide User Details" })
+        }
+        if (!validator.isValid(mEmail)) {
+            return res.status(400).send({ status: false, message: "Please Provide Email id" })
+        }
+
+        if (!validator.isValid(mPassword)) {
+            return res.status(400).send({ status: false, message: "Please Provide Password" })
+        }
         let user = await userModel.findOne({email: mEmail})
         if(user) {
 
@@ -163,16 +178,15 @@ const updateUserData = async function (req, res) {
         
 
         if(!validator.isValidObjectId(userId)){
-            res.status(400).send({ status: false, message: `Invalid UserId` })            
+            return res.status(400).send({ status: false, message: `Invalid UserId` })            
         }
   
         if(req.userId != userId) {
-            res.status(400).send({ status: false, msg: `Unauthorised Access` })
-            return
+            return res.status(400).send({ status: false, msg: `Unauthorised Access` })
         }
         const userFound = await userModel.findOne({ _id: userId, isDeleted:false})
         if(!userFound){
-            res.status(400).send({ status: false, message: `No user exist` })            
+            return res.status(400).send({ status: false, message: `No user exist` })            
         }
 
         let obj = {}
@@ -243,11 +257,11 @@ const updateUserData = async function (req, res) {
   
         const updatedData = await userModel.findOneAndUpdate({_id:userId}, obj,{new:true})
 
-        res.status(200).send({ status: true, message: `Successlly updated user details`, data: updatedData })
+        return res.status(200).send({ status: true, message: `Successlly updated user details`, data: updatedData })
     }
   
     catch (err) {
-        res.status(500).send({ status: false, message: err.message });
+        return res.status(500).send({ status: false, message: err.message });
     }
   }
 

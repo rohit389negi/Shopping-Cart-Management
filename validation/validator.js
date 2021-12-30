@@ -22,6 +22,9 @@ const isValidPassword = function (value) {
 const isValidRequestBody = function (requestBody) {
     return Object.keys(requestBody).length > 0;
   };
+  function financial(x) {
+    return Number.parseFloat(x).toFixed(2);
+  }
 
 
-module.exports = {isValid, isAvailableSizes, isValidPassword, isValidRequestBody, isValidObjectId}
+module.exports = {isValid, isAvailableSizes, isValidPassword, isValidRequestBody, isValidObjectId , financial}
