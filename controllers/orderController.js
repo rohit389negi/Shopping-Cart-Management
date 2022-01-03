@@ -2,6 +2,9 @@ const validator = require('../validation/validator')
 const productModel = require('../models/productModel')
 const userModel = require('../models/userModel')
 const awsFunction = require('../controllers/awsControllers')
+const orderModel = require('../models/orderModel')
+const { findOne } = require('../models/productModel')
+
 
 
 const createOrder = async (req, res) => {
@@ -39,13 +42,20 @@ const createOrder = async (req, res) => {
 const cancelOrder = async (req, res) => {
     try {
 
-        let orderIdId = req.body.orderId
+        let orderId = req.body.orderId
         let paramsUserId = req.params.userId;
 
         if(!(req.userId == paramsUserId)){
             return res.status(400).send({status: true, message:"You are not authorised to Create Order"})
             }
-        const orderCancel = await orderModel.findOneAndUpdate({ _id: orderIdId }, { isDeleted: true, deletedAt: Date(), status: "cancelled" }, { new: true })
+            const orderDetails = await orderModel.findOne({_id:orderId})
+            if(!orderDetails) {
+                return res.status(400).send({status: true, message:"Order Not Found"})
+            }
+            if(orderDetails.cancellable === false) {
+                return res.status(400).send({status: true, message:"This Order Can not be cancelled"})
+            }
+        const orderCancel = await orderModel.findOneAndUpdate({ _id: orderId }, { isDeleted: true, deletedAt: Date(), status: "cancelled" }, { new: true })
         return res.status(200).send({ status: true, message: 'Order has been cancelled Successfully', data: orderCancel });
     }
     catch (err) {
