@@ -161,17 +161,23 @@ const getCart = async function (req, res) {
     try {
         const cartId = req.body.cartId
         const userId = req.params.userId
+        
+        if (!validator.isValidObjectId(cartId)) {
+            return res.status(400).send({status: true, message: "Please Provide a Valid cartId"});
+        }
+        if (!validator.isValidObjectId(userId)) {
+            return res.status(400).send({status: true, message: "Please Provide a Valid UserId"});
+        }
+        if (req.userId != userId){
+            return res.status(401).send({status:false, message: 'unauthorised access'})
+        }
 
-        // if (req.userId != userId){
-        //     return res.status(401).send({status:false, message: 'unauthorised access'})
-        // }
-
-        const userFound = await userModel.findOne({_id: userId, isDeleted:false})
+        const userFound = await userModel.findOne({_id: userId})
         if(!userFound) {
             return res.status(400).send({status:false, message : 'userID does not exist'})
         }
         
-        const cartFound = await cartModel.findOne({_id:cartId, isDeleted:false})
+        const cartFound = await cartModel.findOne({_id:cartId})
         if(!cartFound) {
             return res.status(400).send({status:false, message : 'cartID does not exist'})
         }
@@ -194,16 +200,25 @@ const deleteCart = async function(req,res) {
         const userId = req.params.userId
         const cartId = req.body.cartId
 
-    const cartFound = await cartModel.findOne({_id:cartId, isDeleted:false})
+        if (!validator.isValidObjectId(cartId)) {
+            return res.status(400).send({status: true, message: "Please Provide a Valid cartId"});
+        }
+        if (!validator.isValidObjectId(userId)) {
+            return res.status(400).send({status: true, message: "Please Provide a Valid UserId"});
+        }
+
+    const cartFound = await cartModel.findOne({_id:cartId})
     if(!cartFound){
         return res.status(400).send({status: false, message: 'CartId not found'})
     }
 
-    const userFound = await userModel.findOne({_id:userId, isDeleted:false})
+    const userFound = await userModel.findOne({_id:userId})
     if(!userFound){
         return res.status(400).send({status: false, message: 'UserId not found'})
     }
-
+    if (req.userId != userId){
+        return res.status(401).send({status:false, message: 'unauthorised access'})
+    }
     const items = cartFound.items
     const length = items.length
     let newArr = items.splice(length)

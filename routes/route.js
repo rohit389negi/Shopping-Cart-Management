@@ -26,7 +26,7 @@ router.get('/users/:userId/cart', middlewares.auth, cartController.getCart)
 router.delete('/users/:userId/cart', middlewares.auth, cartController.deleteCart)
 
 router.post('/users/:userId/orders', orderController.createOrder)
-//router.put('/users/:userId/orders', orderController.updateOrder)
+router.put('/users/:userId/orders', orderController.updateOrder)
 
 
 
