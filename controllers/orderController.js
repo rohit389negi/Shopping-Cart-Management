@@ -10,7 +10,7 @@ const createOrder = async (req, res) => {
         if (!paramsUserId) {
             return res.status(400).send({ status: false, message: "Please Provide UserId" })
         }
-        if(!(req.userId == paramsUser)){
+        if(!(req.userId == paramsUserId)){
         return res.status(400).send({status: true, message:"You are not authorised to Create Order"})
         }
         let prodInfo = req.body;
@@ -36,24 +36,22 @@ const createOrder = async (req, res) => {
 
 
 
-const updateOrder = async (req, res) => {
-    try{
-    let params = req.params.userId;
-    if(!params){
-    return res.status(400).send({ status: false, message:"Please Provide UserId"})
+const cancelOrder = async (req, res) => {
+    try {
+
+        let orderIdId = req.body.orderId
+        let paramsUserId = req.params.userId;
+
+        if(!(req.userId == paramsUserId)){
+            return res.status(400).send({status: true, message:"You are not authorised to Create Order"})
+            }
+        const orderCancel = await orderModel.findOneAndUpdate({ _id: orderIdId }, { isDeleted: true, deletedAt: Date(), status: "cancelled" }, { new: true })
+        return res.status(200).send({ status: true, message: 'Order has been cancelled Successfully', data: orderCancel });
     }
-    if(!(req.userId == paramsUser)){
-    return res.status(400).send({status: true, message:"You are not authorised to Create Order"})
+    catch (err) {
+        res.status(500).send(err.message)
     }
-    let orderId1 = req.body.orderId;
-    //Make sure that only cancellable order could be cancel. else send an appropriate error message and response
-    const orderUpdate = await orderModel.findOneAndUpdate({_id: orderId1, cancellable: true},{isDeleted: true})
-    return res.status(201).send({status: true, message: "Successfully Updated", data: orderUpdate})
-    }
-    catch(err){
-    return res.status(500).send({message: err.message});
-    }
-    }
+}
 
 
-module.exports = { createOrder ,updateOrder}
+module.exports = { createOrder ,cancelOrder}
