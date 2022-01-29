@@ -38,7 +38,6 @@ const userSchema = new mongoose.Schema({
     required: "Password is Required"
     },
 
-
   address: {
     shipping: {
       street: {

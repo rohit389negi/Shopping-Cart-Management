@@ -80,7 +80,6 @@ const createCart = async function (req, res) {
                             cartDetail.save();
                     }
                      return res.status(200).send({status: true, msg: "Successful", data: cartDetail})
-                
             
         }
     } catch (err) {

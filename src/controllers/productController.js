@@ -42,6 +42,7 @@ let addProduct = async function (req, res) {
         }
 
         let findTitle = await productModel.findOne({ title })
+        
         if (findTitle) {
             res.status(403).send({ status: false, message: "product with this title already exist it must be unique" })
             return

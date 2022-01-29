@@ -20,6 +20,7 @@ const createOrder = async (req, res) => {
         let totalPrice = 0;
         let totalQuantity = 0;
         let totalItems = prodInfo.items.length;
+        
         for (let i = 0; i < totalItems; i++) {
             let dummy = await productModel.findOne({ _id: (prodInfo.items[0].productId) })
             totalPrice = totalPrice + dummy.price * prodInfo.items[i].quantity
