@@ -10,7 +10,6 @@ const validator = require('../validation/validator');
 const { findOne } = require('../models/userModel');
 
 
-
 const registerUser = async (req, res) => {
 
     try {
@@ -111,6 +110,7 @@ const Login = async (req, res) => {
             return res.status(400).send({ status: false, message: "Please Provide Password" })
         }
         let user = await userModel.findOne({email: mEmail})
+
         if(user) {
 
             const _id= user._id
