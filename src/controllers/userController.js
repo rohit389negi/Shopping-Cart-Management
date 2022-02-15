@@ -116,7 +116,7 @@ const getUserData = async function (req, res) {
         }
         let userDetail = await userModel.findOne({ _id: userId})
         if(!userDetail){
-            res.status(400).send({status:false, message: `No user exist with this ${userId}`})
+           return res.status(400).send({status:false, message: `No user exist with this ${userId}`})
         }
         const userCart = await cartModel.findOne({userId: userId})
         if(userCart) userDetail.cartId = userCart._id
